@@ -34,22 +34,25 @@ public class TwitterFilterBolt extends BaseRichBolt {
 	public void execute(Tuple input) {
 		LOGGER.debug("filtering incoming tweets");
 		String json = input.getString(0);
+//		LOGGER.debug("-----------tweet:##"+json+"######-----------");
+		
 		try {
 			JsonNode root = mapper.readValue(json, JsonNode.class);
 			long id;
 			String text;
 			if (root.get("lang") != null
 					&& "en".equals(root.get("lang").textValue())) {
-				if (root.get("id").textValue() != null
+				if (root.get("id") != null
 						&& root.get("text").textValue() != null) {
 					id = root.get("id").longValue();
 					text = root.get("text").textValue();
 					collector.emit(new Values(id, text));
 				} else {
-					LOGGER.debug("tweet id and/ or text was null");
+					LOGGER.debug("tweet id and/ or text was null::"+root.get("text").textValue()+"::"+root.get("id").longValue());
+					LOGGER.debug("-----------tweet:##"+json+"######-----------");
 				}
 			} else {
-				LOGGER.debug("Ignoring non-english tweet");
+				LOGGER.debug("Ignoring non-english tweet::" + root.get("lang"));
 			}
 		} catch (IOException e) {
 			LOGGER.error("IO error while filtering tweets", e);

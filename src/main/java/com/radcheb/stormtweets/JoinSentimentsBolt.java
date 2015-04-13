@@ -19,14 +19,14 @@ public class JoinSentimentsBolt extends BaseRichBolt {
 	private static final long serialVersionUID = 42L;
 	private static final Logger LOGGER = Logger
 			.getLogger(JoinSentimentsBolt.class);
-	private HashMap<Long, Triple<String, Float, String>> tweets;
+	private HashMap<Long, Triple<String, Integer, String>> tweets;
 	private OutputCollector collector = null;
 
 	@Override
 	public void prepare(Map stormConf, TopologyContext context,
 			OutputCollector collector) {
 		this.collector = collector;
-		this.tweets = new HashMap<Long, Triple<String, Float, String>>();
+		this.tweets = new HashMap<Long, Triple<String, Integer, String>>();
 	}
 
 	@Override
@@ -34,9 +34,9 @@ public class JoinSentimentsBolt extends BaseRichBolt {
 		long id = input.getLongByField(Params.TWEET_ID_FIELD);
 		String text = input.getStringByField(Params.TWEET_TEXT_FIELD);
 		if (input.contains(Params.POSITIVE_SCORE_FIELD)) {
-			Float pos = input.getFloatByField(Params.POSITIVE_SCORE_FIELD);
+			int pos = input.getIntegerByField(Params.POSITIVE_SCORE_FIELD);
 			if (this.tweets.containsKey(id)) {
-				Triple<String, Float, String> triple = this.tweets.get(id);
+				Triple<String, Integer, String> triple = this.tweets.get(id);
 				if ("neg".equals(triple.getCar())) {
 					emit(id, triple.getCaar(), pos, triple.getCdr());
 				} else {
@@ -44,13 +44,14 @@ public class JoinSentimentsBolt extends BaseRichBolt {
 					this.tweets.remove(id);
 				}
 			} else {
-				this.tweets.put(id, new Triple<String, Float, String>("pos",
+				this.tweets.put(id, new Triple<String, Integer, String>("pos",
 						pos, text));
 			}
 		} else if (input.contains(Params.NEGATIVE_SCORE_FIELD)) {
-			Float neg = input.getFloatByField(Params.NEGATIVE_SCORE_FIELD);
+			LOGGER.debug("NEG: content:: "+input.getValueByField(Params.NEGATIVE_SCORE_FIELD));
+			int neg = input.getIntegerByField(Params.NEGATIVE_SCORE_FIELD);
 			if (this.tweets.containsKey(id)) {
-				Triple<String, Float, String> triple = this.tweets.get(id);
+				Triple<String, Integer, String> triple = this.tweets.get(id);
 				if ("pos".equals(triple.getCar())) {
 					emit(id, triple.getCaar(), neg, triple.getCdr());
 				} else {
@@ -58,7 +59,7 @@ public class JoinSentimentsBolt extends BaseRichBolt {
 					this.tweets.remove(id);
 				}
 			} else {
-				this.tweets.put(id, new Triple<String, Float, String>("neg",
+				this.tweets.put(id, new Triple<String, Integer, String>("neg",
 						neg, text));
 			}
 		} else {
@@ -66,7 +67,7 @@ public class JoinSentimentsBolt extends BaseRichBolt {
 		}
 	}
 
-	private List<Integer> emit(long id, String text, float pos, float neg) {
+	private List<Integer> emit(long id, String text, int pos, int neg) {
 		List<Integer> result = collector.emit(new Values(id, pos, neg, text));
 		this.tweets.remove(id);
 		return result;

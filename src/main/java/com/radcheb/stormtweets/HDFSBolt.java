@@ -13,7 +13,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 
-import scala.Array;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -42,12 +41,12 @@ public class HDFSBolt extends BaseRichBolt {
 
 		long id = input.getLongByField(Params.TWEET_ID_FIELD);
 		String tweet = input.getStringByField(Params.TWEET_TEXT_FIELD);
-		Float pos = input.getFloatByField(Params.POSITIVE_SCORE_FIELD);
-		Float neg = input.getFloatByField(Params.NEGATIVE_SCORE_FIELD);
+		int pos = input.getIntegerByField(Params.POSITIVE_SCORE_FIELD);
+		int neg = input.getIntegerByField(Params.NEGATIVE_SCORE_FIELD);
 		String score = input.getStringByField(Params.SCORE_FIELD);
-		String tweet_score = String.format("%s, %s, %f, %f, %s\n", id, tweet,
+		String tweet_score = String.format("%s, %s, %d, %d, %s\n", id, tweet,
 				pos, neg, score);
-		if (this.tweet_scores.size() >= 1000) {
+		if (this.tweet_scores.size() >= 10) {
 			writeToHDFS();
 			this.tweet_scores = new ArrayList<String>(1000);
 		}
@@ -60,8 +59,10 @@ public class HDFSBolt extends BaseRichBolt {
 		BufferedWriter writer = null;
 		try {
 			Configuration conf = new Configuration();
-			conf.addResource(new Path("/opt/hadoop/etc/hadoop/core-site.xml"));
-			conf.addResource(new Path("/opt/hadoop/etc/hadoop/hdfs-site.xml"));
+			conf.set("fs.defaultFS","172.17.42.1:9000");
+			conf.set("dfs.replication","1");
+//			conf.addResource(new Path("/opt/hadoop/etc/hadoop/core-site.xml"));
+//			conf.addResource(new Path("/opt/hadoop/etc/hadoop/hdfs-site.xml"));
 			hdfs = FileSystem.get(conf);
 			file = new Path(Properties.getString("rts.storm.hdfs_output_file")
 					+ this.id);

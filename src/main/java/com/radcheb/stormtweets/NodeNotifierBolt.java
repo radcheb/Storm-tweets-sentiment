@@ -28,6 +28,7 @@ public class NodeNotifierBolt extends BaseRichBolt
     @Override
 	public void prepare(Map stormConf, TopologyContext context,
 			OutputCollector collector) {
+    	reconnect();
 	}
 
     private void reconnect(){
@@ -37,8 +38,8 @@ public class NodeNotifierBolt extends BaseRichBolt
 	public void execute(Tuple input) {
         Long id = input.getLong(input.fieldIndex("tweet_id"));
         String tweet = input.getString(input.fieldIndex("tweet_text"));
-        Float pos = input.getFloat(input.fieldIndex("pos_score"));
-        Float neg = input.getFloat(input.fieldIndex("neg_score"));
+        int pos = input.getInteger(input.fieldIndex("pos_score"));
+        int neg = input.getInteger(input.fieldIndex("neg_score"));
         String score = input.getString(input.fieldIndex("score"));
         HttpPost post = new HttpPost(this.webserver);
         String content = 
@@ -46,8 +47,8 @@ public class NodeNotifierBolt extends BaseRichBolt
 
         	            "{\"id\": \"%d\", "  +
         	            "\"tweet\": \"%s\", " +
-        	            "\"pos\": \"%f\", "  +
-        	            "\"neg\": \"%f\", "  +
+        	            "\"pos\": \"%d\", "  +
+        	            "\"neg\": \"%d\", "  +
         	            "\"score\": \"%s\" }",
         	         	id,tweet,pos,neg,score);
         try{
@@ -58,7 +59,13 @@ public class NodeNotifierBolt extends BaseRichBolt
             LOGGER.error("exception thrown while attempting post", e);
             LOGGER.trace(null, e);
             reconnect();
-        }
+        }catch (NullPointerException e) {
+            LOGGER.error("exception thrown while attempting post", e);
+            LOGGER.debug("server: "+this.webserver);
+            LOGGER.debug("client: "+client.toString());
+            LOGGER.debug("server: "+post.toString());
+            LOGGER.trace(null, e);
+		}
     }
 	/*
 	 * Terminal Bolt, nothing to declare

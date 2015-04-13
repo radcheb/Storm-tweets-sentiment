@@ -13,7 +13,7 @@
 		<encoding>UTF-8</encoding>
 		<scala.version>2.10.0</scala.version>
 		<scala.main>com.radcheb.App</scala.main>
-		<java.main>com.radcheb.stormtweets.App</java.main>
+		<java.main>com.radcheb.stormtweets.SentimentAnalysisTopology</java.main>
 	</properties>
 
 
@@ -68,9 +68,14 @@
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-core</artifactId>
 			<version>0.9.4</version>
-			<exclusions>
+<!-- 			<scope>provided</scope>
+ -->			<exclusions>
 				<exclusion>
 					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>log4j-over-slf4j</artifactId>
 					<groupId>org.slf4j</groupId>
 				</exclusion>
 			</exclusions>
@@ -79,6 +84,12 @@
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka_2.10</artifactId>
 			<version>0.8.2.0</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-log4j12</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.storm</groupId>
@@ -197,7 +208,19 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!-- A plugin to add excution parameters -->
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<archive>
+						<manifest>
+							<mainClass>${java.main}</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>			<!-- A plugin to add excution parameters -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
@@ -213,7 +236,7 @@
 					<mainClass>${java.main}</mainClass>
 					<!-- optional -->
 					<arguments>
-						<argument>1</argument>
+						<!-- <argument>1</argument> -->
 					</arguments>
 				</configuration>
 			</plugin>

@@ -29,8 +29,8 @@ public class SentimentScoringBolt extends BaseRichBolt {
 	public void execute(Tuple input) {
 		long id = input.getLongByField(Params.TWEET_ID_FIELD);
 		String text = input.getStringByField(Params.TWEET_TEXT_FIELD);
-		Float pos = input.getFloatByField(Params.POSITIVE_SCORE_FIELD);
-		Float neg = input.getFloatByField(Params.NEGATIVE_SCORE_FIELD);
+		int pos = input.getIntegerByField(Params.POSITIVE_SCORE_FIELD);
+		int neg = input.getIntegerByField(Params.NEGATIVE_SCORE_FIELD);
 		String score = pos > neg ? Params.POSITIVE_SCORE_VALUE : Params.NEGATIVE_SCORE_VALUE;
         LOGGER.debug(String.format("tweet %s: %s", id, score));
         collector.emit(new Values(id,text, pos,neg,score));
